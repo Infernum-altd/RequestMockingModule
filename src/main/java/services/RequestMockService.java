@@ -14,7 +14,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URI;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 @Service
@@ -22,29 +21,18 @@ public class RequestMockService {
 
     private final RequestMockProperties requestMockProperties;
 
-    private final Map<String, RequestMock> restMocks = new ConcurrentHashMap<>(); //TODO  MOVE THAT METHOD TO SEPARETE SERVICE
-
-    private final List<String> restExcludeParameters = new ArrayList<>(); //TODO  MOVE THAT METHOD TO SEPARETE SERVICE
+    private final MockServiceContainer mockServiceContainer;
 
     /*Boolean.getBoolean(requestMockProperties.getProperty("request.mocking.library.is.db.mode")*/
     @Autowired
-    public RequestMockService(RequestMockProperties requestMockProperties) {
+    public RequestMockService(RequestMockProperties requestMockProperties, MockServiceContainer mockServiceContainer) {
         this.requestMockProperties = requestMockProperties;
+        this.mockServiceContainer = mockServiceContainer;
     }
 
     public ClientHttpResponse executeRestMockIfExists(HttpRequest httpRequest, byte[] defaultResponse, URI uri, ClientHttpRequestExecution clientHttpRequestExecution) throws IOException {
-        RequestMock mock = restMocks.getOrDefault(uri.getHost() + uri.getPath() + sortRequestParameters(uri.getQuery()), null);
+        RequestMock mock = mockServiceContainer.getRestMock(uri.getHost() + uri.getPath() + sortRequestParameters(uri.getQuery()));
         return processRestMocksInMemoryMode(httpRequest, defaultResponse, clientHttpRequestExecution, mock);
-    }
-
-    public void addMock(RequestMock requestMock) { //TODO REST SOAP AND MOVE THAT METHOD TO SEPARETE SERVICE
-        URI request = URI.create(requestMock.getIdentifierOfRequest());
-        String sortedUrl = request.getHost() + request.getPath() + sortRequestParameters(request.getQuery());
-        restMocks.put(sortedUrl, requestMock);
-    }
-
-    public void removeMock(RequestMock requestMock) { //TODO  MOVE THAT METHOD TO SEPARETE SERVICE
-        restMocks.remove(requestMock.getIdentifierOfRequest());
     }
 
     private String sortRequestParameters(String parameters) {
@@ -55,7 +43,7 @@ public class RequestMockService {
     }
 
     private boolean removeExcludedParameters(String parameterValue) {
-        return !restExcludeParameters.contains(parameterValue.split("=")[0]);
+        return !mockServiceContainer.getRestExcludeParameters().contains(parameterValue.split("=")[0]);
     }
 
     private ClientHttpResponse processRestMocksInMemoryMode(HttpRequest httpRequest, byte[] defaultResponse, ClientHttpRequestExecution clientHttpRequestExecution, RequestMock requestMock) throws IOException {
