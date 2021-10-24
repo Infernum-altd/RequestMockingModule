@@ -14,7 +14,7 @@ public class BeanConfiguration {
     private ApplicationContext context;
 
     @Bean
-    public RestTemplate restTemplate() { //TODO ADD SOAP INTERCEPTOR CONFIGURATION
+    public RestTemplate restTemplate() { //TODO ADD SOAP INTERCEPTOR CONFIGURATION https://stackoverflow.com/questions/62573785/spring-ws-endpointinterceptor-not-invoked
         RestTemplate restTemplate = new RestTemplate();
         restTemplate.setInterceptors(Collections.singletonList(context.getBean(RestInterceptor.class)));
         return restTemplate;
