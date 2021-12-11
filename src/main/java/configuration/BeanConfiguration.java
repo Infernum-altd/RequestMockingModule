@@ -1,3 +1,5 @@
+package configuration;
+
 import interceptors.RestInterceptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -10,13 +12,33 @@ import java.util.Collections;
 @Configuration
 public class BeanConfiguration {
 
+    private final ApplicationContext context;
+
     @Autowired
-    private ApplicationContext context;
+    public BeanConfiguration(ApplicationContext context) {
+        this.context = context;
+    }
 
     @Bean
-    public RestTemplate restTemplate() { //TODO ADD SOAP INTERCEPTOR CONFIGURATION https://stackoverflow.com/questions/62573785/spring-ws-endpointinterceptor-not-invoked
+    public RestTemplate restTemplate() {
         RestTemplate restTemplate = new RestTemplate();
         restTemplate.setInterceptors(Collections.singletonList(context.getBean(RestInterceptor.class)));
         return restTemplate;
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//TODO ADD SOAP INTERCEPTOR CONFIGURATION https://stackoverflow.com/questions/62573785/spring-ws-endpointinterceptor-not-invoked
